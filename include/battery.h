@@ -1,6 +1,8 @@
 #ifndef BATTERY_H
 #define BATTERY_H
 
+#include <pthread.h>
+
 typedef struct {
     double voltage;
     double temperature;

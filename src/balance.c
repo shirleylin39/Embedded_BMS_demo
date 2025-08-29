@@ -3,7 +3,10 @@
 #include <pthread.h>
 #include "battery.h"
 #include "balance.h"
+#include "config.h"
 
+extern Battery* batteries;
+extern int balancing_cell;
 extern pthread_mutex_t mutex;
 
 void* balance_thread(void* arg) {
@@ -12,23 +15,25 @@ void* balance_thread(void* arg) {
         int max_idx = 0;
 
         pthread_mutex_lock(&mutex);
-        for(int i=0;i<NUM_CELLS;i++){
-            if(batteries[i].voltage>max_v){
-                max_v=batteries[i].voltage;
-                max_idx=i;
+
+        for(int i = 0; i < NUM_CELLS; i++){
+            if (batteries[i].voltage > max_v) {
+                max_v = batteries[i].voltage;
+                max_idx = i;
             }
-            if(batteries[i].voltage<min_v){
-                min_v=batteries[i].voltage;
+            if (batteries[i].voltage < min_v){
+                min_v = batteries[i].voltage;
             }
         }
+
+        if (max_v - min_v > BALANCE_THRESHOLD) {
+            balancing_cell = max_idx;
+        } else {
+            balancing_cell = -1;
+        }
+
         pthread_mutex_unlock(&mutex);
 
-        if(max_v-min_v>BALANCE_THRESHOLD){
-            printf("-> Balancing Cell %d\n", max_idx+1);
-        } else {
-            printf("-> Voltage OK\n");
-        }
-
-        usleep(1000000);
+        sleep(1);
     }
 }
